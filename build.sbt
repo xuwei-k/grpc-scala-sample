@@ -21,7 +21,7 @@ lazy val grpcScalaSample = project.in(file("grpc-scala")).settings(
   },
   version in PB.protobufConfig := "3.0.0-beta-1",
   watchSources ++= (((sourceDirectory in Compile).value / "protobuf") ** "*.proto").get,
-  libraryDependencies += "com.trueaccord.scalapb" %% "scalapb-runtime-grpc" % "0.5.18",
+  libraryDependencies += "com.trueaccord.scalapb" %% "scalapb-runtime-grpc" % (PB.scalapbVersion in PB.protobufConfig).value,
   json,
   unmanagedResourceDirectories in Compile += (baseDirectory in LocalRootProject).value / "grpc-java/examples/src/main/resources",
   sourceDirectory in PB.protobufConfig := (baseDirectory in LocalRootProject).value / "grpc-java/examples/src/main/proto",
