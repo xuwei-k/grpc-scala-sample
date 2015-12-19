@@ -14,7 +14,12 @@ lazy val root = project.in(file(".")).aggregate(
   grpcJavaSample, grpcScalaSample
 )
 
+val commonSettings: Seq[Def.Setting[_]] = Seq[Def.Setting[_]](
+  discoveredMainClasses in Compile ~= {_.sorted}
+)
+
 lazy val grpcScalaSample = project.in(file("grpc-scala")).settings(
+  commonSettings,
   PB.protobufSettings,
   PB.runProtoc in PB.protobufConfig := { args =>
     com.github.os72.protocjar.Protoc.runProtoc("-v300" +: args.toArray)
@@ -42,6 +47,7 @@ lazy val grpcScalaSample = project.in(file("grpc-scala")).settings(
 )
 
 lazy val grpcJavaSample = project.in(file("grpc-java/examples")).settings(
+  commonSettings,
   json,
   libraryDependencies += "io.grpc" % "grpc-all" % "0.9.0",
   autoScalaLibrary := false,
