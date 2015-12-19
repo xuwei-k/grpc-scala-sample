@@ -53,7 +53,7 @@ object CustomHeaderServer {
    * Main launches the server from the command line.
    */
   def main(args: Array[String]) {
-    val server: CustomHeaderServer = new CustomHeaderServer
+    val server = new CustomHeaderServer
     server.start()
     server.blockUntilShutdown()
   }

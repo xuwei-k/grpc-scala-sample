@@ -54,12 +54,9 @@ object CompressingHelloWorldClient {
    * greeting.
    */
   def main(args: Array[String]) {
-    val client: CompressingHelloWorldClient = new CompressingHelloWorldClient("localhost", 50051)
+    val client = new CompressingHelloWorldClient("localhost", 50051)
     try {
-      var user: String = "world"
-      if (args.length > 0) {
-        user = args(0)
-      }
+      val user = args.headOption.getOrElse("world")
       client.greet(user)
     } finally {
       client.shutdown()

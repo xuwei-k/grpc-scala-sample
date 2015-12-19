@@ -53,12 +53,9 @@ object CustomHeaderClient {
    */
   @throws(classOf[Exception])
   def main(args: Array[String]) {
-    val client: CustomHeaderClient = new CustomHeaderClient("localhost", 50051)
+    val client = new CustomHeaderClient("localhost", 50051)
     try {
-      var user: String = "world"
-      if (args.length > 0) {
-        user = args(0)
-      }
+      val user = args.headOption.getOrElse("world")
       client.greet(user)
     } finally {
       client.shutdown()
@@ -73,8 +70,8 @@ class CustomHeaderClient(host: String, port: Int) {
   private final val originChannel: ManagedChannel =
     ManagedChannelBuilder.forAddress(host, port).usePlaintext(true).build
   private final val blockingStub: GreeterGrpc.GreeterBlockingStub = {
-    val interceptor: ClientInterceptor = new HeaderClientInterceptor
-    val channel: Channel = ClientInterceptors.intercept(originChannel, interceptor)
+    val interceptor = new HeaderClientInterceptor
+    val channel = ClientInterceptors.intercept(originChannel, interceptor)
     GreeterGrpc.blockingStub(channel)
   }
 
