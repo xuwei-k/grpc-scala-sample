@@ -29,7 +29,7 @@ lazy val grpcScalaSample = project.in(file("grpc-scala")).settings(
   json,
   unmanagedResourceDirectories in Compile += (baseDirectory in LocalRootProject).value / "grpc-java/examples/src/main/resources",
   sourceDirectory in PB.protobufConfig := (baseDirectory in LocalRootProject).value / "grpc-java/examples/src/main/proto",
-  scalaVersion := "2.11.7",
+  scalaVersion := "2.11.8",
   scalacOptions ++= (
     "-deprecation" ::
     "-unchecked" ::
