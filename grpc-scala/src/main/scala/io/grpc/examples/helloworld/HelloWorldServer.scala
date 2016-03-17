@@ -33,7 +33,7 @@ package io.grpc.examples.helloworld
 import java.util.logging.Logger
 
 import io.grpc.{Server, ServerBuilder}
-import io.grpc.examples.helloworld.hello_world.{GreeterGrpc, HelloRequest, HelloResponse}
+import io.grpc.examples.helloworld.helloworld.{GreeterGrpc, HelloRequest, HelloReply}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -81,7 +81,7 @@ class HelloWorldServer(executionContext: ExecutionContext) { self =>
 
   private class GreeterImpl extends GreeterGrpc.Greeter {
     override def sayHello(req: HelloRequest) = {
-      val reply = HelloResponse(message = "Hello " + req.name)
+      val reply = HelloReply(message = "Hello " + req.name)
       Future.successful(reply)
     }
   }

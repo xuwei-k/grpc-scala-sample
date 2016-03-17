@@ -33,10 +33,10 @@ package io.grpc.examples.header
 import io.grpc.Server
 import io.grpc.ServerBuilder
 import io.grpc.ServerInterceptors
-import io.grpc.examples.helloworld.hello_world.GreeterGrpc
-import io.grpc.examples.helloworld.hello_world.GreeterGrpc.Greeter
-import io.grpc.examples.helloworld.hello_world.HelloRequest
-import io.grpc.examples.helloworld.hello_world.HelloResponse
+import io.grpc.examples.helloworld.helloworld.GreeterGrpc
+import io.grpc.examples.helloworld.helloworld.GreeterGrpc.Greeter
+import io.grpc.examples.helloworld.helloworld.HelloRequest
+import io.grpc.examples.helloworld.helloworld.HelloReply
 import java.util.logging.Logger
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
@@ -95,8 +95,8 @@ class CustomHeaderServer {
   }
 
   private class GreeterImpl extends Greeter {
-    def sayHello(req: HelloRequest): Future[HelloResponse] = {
-      Future.successful(HelloResponse("Hello " + req.name))
+    def sayHello(req: HelloRequest): Future[HelloReply] = {
+      Future.successful(HelloReply("Hello " + req.name))
     }
   }
 

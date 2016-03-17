@@ -33,8 +33,8 @@ package io.grpc.examples.experimental
 import io.grpc.Codec
 import io.grpc.ManagedChannel
 import io.grpc.ManagedChannelBuilder
-import io.grpc.examples.helloworld.hello_world.GreeterGrpc
-import io.grpc.examples.helloworld.hello_world.HelloRequest
+import io.grpc.examples.helloworld.helloworld.GreeterGrpc
+import io.grpc.examples.helloworld.helloworld.HelloRequest
 import java.util.concurrent.TimeUnit
 import java.util.logging.Level
 import java.util.logging.Logger
@@ -68,7 +68,7 @@ class CompressingHelloWorldClient(host: String, port: Int) {
   private final val channel: ManagedChannel =
     ManagedChannelBuilder.forAddress(host, port).usePlaintext(true).build
   private final val blockingStub: GreeterGrpc.GreeterBlockingStub =
-    GreeterGrpc.blockingStub(channel).withCompressor(new Codec.Gzip)
+    GreeterGrpc.blockingStub(channel).withCompression((new Codec.Gzip).getMessageEncoding)
 
   def shutdown() = {
     channel.shutdown.awaitTermination(5, TimeUnit.SECONDS)
