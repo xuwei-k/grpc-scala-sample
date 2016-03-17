@@ -1,7 +1,6 @@
 import com.trueaccord.scalapb.{ScalaPbPlugin => PB}
 
-// https://github.com/grpc/grpc-java/blob/v0.9.0/build.gradle#L130
-// https://github.com/grpc/grpc-java/blob/v0.9.0/examples/build.gradle#L21
+// https://github.com/grpc/grpc-java/blob/v0.13.2/examples/build.gradle#L32
 val json = libraryDependencies += "org.glassfish" % "javax.json" % "1.0.4"
 
 val unusedWarnings = (
@@ -48,7 +47,7 @@ lazy val grpcScalaSample = project.in(file("grpc-scala")).settings(
 lazy val grpcJavaSample = project.in(file("grpc-java/examples")).settings(
   commonSettings,
   json,
-  libraryDependencies += "io.grpc" % "grpc-all" % "0.9.0",
+  libraryDependencies += "io.grpc" % "grpc-all" % "0.13.2",
   autoScalaLibrary := false,
   unmanagedSourceDirectories in Compile += baseDirectory.value / "src/generated/main/"
 )

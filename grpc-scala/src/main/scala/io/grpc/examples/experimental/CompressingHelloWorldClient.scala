@@ -30,14 +30,14 @@
  */
 package io.grpc.examples.experimental
 
-import io.grpc.Codec
-import io.grpc.ManagedChannel
-import io.grpc.ManagedChannelBuilder
-import io.grpc.examples.helloworld.hello_world.GreeterGrpc
-import io.grpc.examples.helloworld.hello_world.HelloRequest
-import java.util.concurrent.TimeUnit
-import java.util.logging.Level
+import java.util.concurrent.{CountDownLatch, TimeUnit}
 import java.util.logging.Logger
+
+import com.google.common.util.concurrent.Uninterruptibles
+import io.grpc.ClientCall.Listener
+import io.grpc._
+import io.grpc.examples.helloworld.helloworld.{GreeterGrpc, HelloReply, HelloRequest}
+import io.grpc.internal.GrpcUtil
 
 /**
  * A simple client that requests a greeting from the
@@ -67,8 +67,6 @@ object CompressingHelloWorldClient {
 class CompressingHelloWorldClient(host: String, port: Int) {
   private final val channel: ManagedChannel =
     ManagedChannelBuilder.forAddress(host, port).usePlaintext(true).build
-  private final val blockingStub: GreeterGrpc.GreeterBlockingStub =
-    GreeterGrpc.blockingStub(channel).withCompressor(new Codec.Gzip)
 
   def shutdown() = {
     channel.shutdown.awaitTermination(5, TimeUnit.SECONDS)
@@ -76,16 +74,37 @@ class CompressingHelloWorldClient(host: String, port: Int) {
 
   /** Say hello to server. */
   def greet(name: String) {
-    try {
-      CompressingHelloWorldClient.logger.info("Will try to greet " + name + " ...")
-      val request = HelloRequest(name)
-      val response = blockingStub.sayHello(request)
-      CompressingHelloWorldClient.logger.info("Greeting: " + response.message)
-    }
-    catch {
-      case e: RuntimeException =>
-        CompressingHelloWorldClient.logger.log(Level.WARNING, "RPC failed", e)
-    }
+    val call = channel.newCall(GreeterGrpc.METHOD_SAY_HELLO, CallOptions.DEFAULT)
+    val latch = new CountDownLatch(1)
+
+    call.start(new Listener[HelloReply] {
+      override def onHeaders(headers: Metadata): Unit = {
+        super.onHeaders(headers)
+        val encoding = headers.get(GrpcUtil.MESSAGE_ENCODING_KEY)
+        if (encoding == null) {
+          throw new RuntimeException("No compression selected!")
+        }
+      }
+
+      override def onMessage(message: HelloReply): Unit = {
+        super.onMessage(message)
+        CompressingHelloWorldClient.logger.info("Greeting: " + message.message)
+        latch.countDown()
+      }
+
+      override def onClose(status: Status, trailers: Metadata): Unit = {
+        latch.countDown()
+        if (!status.isOk) {
+          throw status.asRuntimeException()
+        }
+      }
+    }, new Metadata())
+    call.setMessageCompression(true)
+    call.sendMessage(HelloRequest(name))
+    call.request(1)
+    call.halfClose()
+
+    Uninterruptibles.awaitUninterruptibly(latch, 100, TimeUnit.SECONDS)
   }
 }
 

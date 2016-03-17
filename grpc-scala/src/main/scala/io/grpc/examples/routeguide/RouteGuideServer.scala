@@ -45,7 +45,7 @@ import scala.collection.convert.decorateAll._
 import scala.concurrent.{ExecutionContext, Future}
 
 /**
- * [[https://github.com/grpc/grpc-java/blob/v0.9.0/examples/src/main/java/io/grpc/examples/routeguide/RouteGuideServer.java]]
+ * [[https://github.com/grpc/grpc-java/blob/v0.13.2/examples/src/main/java/io/grpc/examples/routeguide/RouteGuideServer.java]]
  */
 object RouteGuideServer {
   private val logger: Logger = Logger.getLogger(classOf[RouteGuideServer].getName)
@@ -119,7 +119,7 @@ object RouteGuideServer {
         }
 
         def onError(t: Throwable) {
-          logger.log(Level.WARNING, "Encountered error in recordRoute", t)
+          logger.log(Level.WARNING, "recordRoute cancelled", t)
         }
 
         def onCompleted(): Unit = {
@@ -141,7 +141,7 @@ object RouteGuideServer {
         }
 
         def onError(t: Throwable) {
-          logger.log(Level.WARNING, "Encountered error in routeChat", t)
+          logger.log(Level.WARNING, "routeChat cancelled", t)
         }
 
         def onCompleted() =  {

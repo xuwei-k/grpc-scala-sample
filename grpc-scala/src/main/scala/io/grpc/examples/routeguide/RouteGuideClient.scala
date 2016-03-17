@@ -30,29 +30,36 @@
  */
 package io.grpc.examples.routeguide
 
-import com.google.common.util.concurrent.SettableFuture
-import io.grpc.ManagedChannel
-import io.grpc.ManagedChannelBuilder
+import java.io.IOException
+import java.util.Random
+import java.util.concurrent.{CountDownLatch, TimeUnit}
+import java.util.logging.{Level, Logger}
+
 import io.grpc.examples.routeguide.route_guide._
 import io.grpc.stub.StreamObserver
-import java.util.Random
-import java.util.concurrent.TimeUnit
-import java.util.logging.Level
-import java.util.logging.Logger
+import io.grpc.{ManagedChannel, ManagedChannelBuilder, Status, StatusRuntimeException}
 
 /**
- * [[https://github.com/grpc/grpc-java/blob/v0.9.0/examples/src/main/java/io/grpc/examples/routeguide/RouteGuideClient.java]]
+ * [[https://github.com/grpc/grpc-java/blob/v0.13.2/examples/src/main/java/io/grpc/examples/routeguide/RouteGuideClient.java]]
  */
 object RouteGuideClient {
   private val logger: Logger = Logger.getLogger(classOf[RouteGuideClient].getName)
 
   def main(args: Array[String]) {
+    val features = try {
+      RouteGuideUtil.parseFeatures(RouteGuideUtil.getDefaultFeaturesFile)
+    } catch {
+      case ex: IOException =>
+        ex.printStackTrace()
+        return
+    }
+
     val client = RouteGuideClient("localhost", 8980)
     try {
       client.getFeature(409146138, -746188906)
       client.getFeature(0, 0)
       client.listFeatures(400000000, -750000000, 420000000, -730000000)
-      client.recordRoute(RouteGuideUtil.parseFeatures(RouteGuideUtil.getDefaultFeaturesFile), 10)
+      client.recordRoute(features, 10)
       client.routeChat()
     } finally {
       client.shutdown()
@@ -85,119 +92,120 @@ class RouteGuideClient private (
   }
 
   def getFeature(lat: Int, lon: Int): Unit = {
-    try {
-      info("*** GetFeature: lat={0} lon={1}", lat, lon)
-      val request = Point(latitude = lat, longitude = lon)
-      val feature = blockingStub.getFeature(request)
-      if (RouteGuideUtil.exists(feature)) {
-        info("Found feature called \"{0}\" at {1}, {2}", feature.name, RouteGuideUtil.getLatitude(feature.getLocation), RouteGuideUtil.getLongitude(feature.getLocation))
-      }
-      else {
-        info("Found no feature at {0}, {1}", RouteGuideUtil.getLatitude(feature.getLocation), RouteGuideUtil.getLongitude(feature.getLocation))
-      }
+    info("*** GetFeature: lat={0} lon={1}", lat, lon)
+    val request = Point(latitude = lat, longitude = lon)
+
+    val feature = try {
+      blockingStub.getFeature(request)
+    } catch {
+      case e: StatusRuntimeException =>
+        RouteGuideClient.logger.log(Level.WARNING, "RPC failed: {0}", e.getStatus())
+        return
     }
-    catch {
-      case e: RuntimeException =>
-        RouteGuideClient.logger.log(Level.WARNING, "RPC failed", e)
-        throw e
+
+    if (RouteGuideUtil.exists(feature)) {
+      info("Found feature called \"{0}\" at {1}, {2}", feature.name, RouteGuideUtil.getLatitude(feature.getLocation), RouteGuideUtil.getLongitude(feature.getLocation))
+    }
+    else {
+      info("Found no feature at {0}, {1}", RouteGuideUtil.getLatitude(feature.getLocation), RouteGuideUtil.getLongitude(feature.getLocation))
     }
   }
 
   def listFeatures(lowLat: Int, lowLon: Int, hiLat: Int, hiLon: Int): Unit = {
-    try {
-      info("*** ListFeatures: lowLat={0} lowLon={1} hiLat={2} hiLon={3}", lowLat, lowLon, hiLat, hiLon)
-      val request = Rectangle(lo = Some(Point(latitude = lowLat, longitude = lowLon)), hi = Some(Point(latitude = hiLat, longitude = hiLon)))
-      val features = blockingStub.listFeatures(request)
-      val responseLog = features.mkString("Result: ", "", "")
-      info(responseLog.toString)
+    info("*** ListFeatures: lowLat={0} lowLon={1} hiLat={2} hiLon={3}", lowLat, lowLon, hiLat, hiLon)
+    val request = Rectangle(lo = Some(Point(latitude = lowLat, longitude = lowLon)), hi = Some(Point(latitude = hiLat, longitude = hiLon)))
+
+    val features = try {
+      blockingStub.listFeatures(request)
+    } catch {
+      case e: StatusRuntimeException =>
+        RouteGuideClient.logger.log(Level.WARNING, "RPC failed: {0}", e.getStatus)
+        return
     }
-    catch {
-      case e: RuntimeException =>
-        RouteGuideClient.logger.log(Level.WARNING, "RPC failed", e)
-        throw e
-    }
+
+    val responseLog = features.mkString("Result: ", "", "")
+    info(responseLog.toString)
   }
 
   def recordRoute(features: List[Feature], numPoints: Int): Unit = {
     info("*** RecordRoute")
-    val finishFuture = SettableFuture.create[Unit]
+    val finishLatch = new CountDownLatch(1)
     val responseObserver = new StreamObserver[RouteSummary] {
       def onNext(summary: RouteSummary) {
         info("Finished trip with {0} points. Passed {1} features. " + "Travelled {2} meters. It took {3} seconds.", summary.pointCount, summary.featureCount, summary.distance, summary.elapsedTime)
       }
 
       def onError(t: Throwable) {
-        finishFuture.setException(t)
+        val status = Status.fromThrowable(t)
+        RouteGuideClient.logger.log(Level.WARNING, "RecordRoute Failed: {0}", status)
+        finishLatch.countDown()
       }
 
       def onCompleted(): Unit = {
-        finishFuture.set(())
+        info("Finished RecordRoute")
+        finishLatch.countDown()
       }
     }
     val requestObserver = asyncStub.recordRoute(responseObserver)
     try {
-      val numMsg= new StringBuilder
       val rand = new Random
 
       var i = 0
-      var done = false
-      while(i < numPoints && !done) {
+      while(i < numPoints) {
         val index = rand.nextInt(features.size)
         val point = features(index).location.getOrElse(sys.error(s"location is None $i"))
         info("Visiting point {0}, {1}", RouteGuideUtil.getLatitude(point), RouteGuideUtil.getLongitude(point))
         requestObserver.onNext(point)
         Thread.sleep(rand.nextInt(1000) + 500)
-        if (finishFuture.isDone) {
-          done = true
+        if(finishLatch.getCount == 0) {
+          return
         }
         i += 1
       }
-
-      info(numMsg.toString)
-      requestObserver.onCompleted
-      finishFuture.get
-      info("Finished RecordRoute")
-    }
-    catch {
-      case e: Exception =>
+    } catch {
+      case e: RuntimeException =>
         requestObserver.onError(e)
-        RouteGuideClient.logger.log(Level.WARNING, "RecordRoute Failed", e)
         throw e
     }
+
+    requestObserver.onCompleted()
+    finishLatch.await(1, TimeUnit.MINUTES)
   }
 
   def routeChat(): Unit = {
     info("*** RoutChat")
-    val finishFuture = SettableFuture.create[Unit]
+    val finishLatch = new CountDownLatch(1)
     val requestObserver = asyncStub.routeChat(new StreamObserver[RouteNote]() {
       def onNext(note: RouteNote) {
         info("Got message \"{0}\" at {1}, {2}", note.message, note.getLocation.latitude, note.getLocation.longitude)
       }
 
       def onError(t: Throwable) {
-        finishFuture.setException(t)
+        val status = Status.fromThrowable(t)
+        RouteGuideClient.logger.log(Level.WARNING, "RouteChat Failed: {0}", status)
+        finishLatch.countDown()
       }
 
       def onCompleted() = {
-        finishFuture.set(())
+        info("Finished RouteChat")
+        finishLatch.countDown()
       }
     })
+
     try {
       val requests = Array(newNote("First message", 0, 0), newNote("Second message", 0, 1), newNote("Third message", 1, 0), newNote("Fourth message", 1, 1))
       for (request <- requests) {
         info("Sending message \"{0}\" at {1}, {2}", request.message, request.getLocation.latitude, request.getLocation.longitude)
         requestObserver.onNext(request)
       }
-      requestObserver.onCompleted()
-      finishFuture.get
-      info("Finished RouteChat")
+    } catch {
+      case e: RuntimeException =>
+        requestObserver.onError(e)
+        throw e
     }
-    catch {
-      case t: Exception =>
-        requestObserver.onError(t)
-        RouteGuideClient.logger.log(Level.WARNING, "RouteChat Failed", t)
-        throw t
-    }
+
+    requestObserver.onCompleted()
+    finishLatch.await(1, TimeUnit.MINUTES)
   }
 
   private def newNote(message: String, lat: Int, lon: Int) = {
