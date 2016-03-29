@@ -36,7 +36,7 @@ import javax.json.{Json, JsonObject}
 import io.grpc.examples.routeguide.route_guide.{Feature, Point}
 
 /**
- * [[https://github.com/grpc/grpc-java/blob/v0.9.0/examples/src/main/java/io/grpc/examples/routeguide/RouteGuideUtil.java]]
+ * [[https://github.com/grpc/grpc-java/blob/v0.13.2/examples/src/main/java/io/grpc/examples/routeguide/RouteGuideUtil.java]]
  */
 object RouteGuideUtil {
   private val COORD_FACTOR: Double = 1e7

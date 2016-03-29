@@ -34,12 +34,12 @@ package io.grpc.examples.helloworld
 import java.util.concurrent.TimeUnit
 import java.util.logging.{Level, Logger}
 
-import io.grpc.examples.helloworld.hello_world.{HelloRequest, GreeterGrpc}
-import io.grpc.examples.helloworld.hello_world.GreeterGrpc.GreeterBlockingStub
-import io.grpc.{ManagedChannelBuilder, ManagedChannel}
+import io.grpc.examples.helloworld.helloworld.{HelloRequest, GreeterGrpc}
+import io.grpc.examples.helloworld.helloworld.GreeterGrpc.GreeterBlockingStub
+import io.grpc.{StatusRuntimeException, ManagedChannelBuilder, ManagedChannel}
 
 /**
- * [[https://github.com/grpc/grpc-java/blob/v0.9.0/examples/src/main/java/io/grpc/examples/helloworld/HelloWorldClient.java]]
+ * [[https://github.com/grpc/grpc-java/blob/v0.13.2/examples/src/main/java/io/grpc/examples/helloworld/HelloWorldClient.java]]
  */
 object HelloWorldClient {
   def apply(host: String, port: Int): HelloWorldClient = {
@@ -71,17 +71,15 @@ class HelloWorldClient private(
 
   /** Say hello to server. */
   def greet(name: String) {
+    logger.info("Will try to greet " + name + " ...")
+    val request = HelloRequest(name = name)
     try {
-      logger.info("Will try to greet " + name + " ...")
-      val request = HelloRequest(name = name)
       val response = blockingStub.sayHello(request)
       logger.info("Greeting: " + response.message)
     }
     catch {
-      case e: RuntimeException =>
-        logger.log(Level.WARNING, "RPC failed", e)
+      case e: StatusRuntimeException =>
+        logger.log(Level.WARNING, "RPC failed: {0}", e.getStatus)
     }
   }
-
-
 }

@@ -62,7 +62,7 @@ class HeaderClientInterceptor extends ClientInterceptor {
         headers.put(HeaderClientInterceptor.customHeadKey, "customRequestValue")
         super.start(new ForwardingClientCallListener.SimpleForwardingClientCallListener[RespT](responseListener) {
           override def onHeaders(headers: Metadata) {
-            HeaderClientInterceptor.logger.info("header received from server:" + headers.toString)
+            HeaderClientInterceptor.logger.info("header received from server:" + headers)
             super.onHeaders(headers)
           }
         }, headers)

@@ -30,13 +30,9 @@
  */
 package io.grpc.examples.header
 
-import io.grpc.Channel
-import io.grpc.ClientInterceptor
-import io.grpc.ClientInterceptors
-import io.grpc.ManagedChannel
-import io.grpc.ManagedChannelBuilder
-import io.grpc.examples.helloworld.hello_world.GreeterGrpc
-import io.grpc.examples.helloworld.hello_world.HelloRequest
+import io.grpc.{StatusRuntimeException, ClientInterceptors, ManagedChannel, ManagedChannelBuilder}
+import io.grpc.examples.helloworld.helloworld.GreeterGrpc
+import io.grpc.examples.helloworld.helloworld.HelloRequest
 import java.util.concurrent.TimeUnit
 import java.util.logging.Level
 import java.util.logging.Logger
@@ -83,15 +79,15 @@ class CustomHeaderClient(host: String, port: Int) {
    * A simple client method that like [[io.grpc.examples.helloworld.HelloWorldClient]].
    */
   private def greet(name: String) {
-    try {
-      CustomHeaderClient.logger.info("Will try to greet " + name + " ...")
-      val request = HelloRequest(name)
-      val response = blockingStub.sayHello(request)
-      CustomHeaderClient.logger.info("Greeting: " + response.message)
+    CustomHeaderClient.logger.info("Will try to greet " + name + " ...")
+    val request = HelloRequest(name)
+    val response = try {
+      blockingStub.sayHello(request)
+    } catch {
+      case e: StatusRuntimeException =>
+        CustomHeaderClient.logger.log(Level.WARNING, "RPC failed: {0}", e.getStatus)
+        return
     }
-    catch {
-      case e: RuntimeException =>
-        CustomHeaderClient.logger.log(Level.WARNING, "RPC failed", e)
-    }
+    CustomHeaderClient.logger.info("Greeting: " + response.message)
   }
 }
