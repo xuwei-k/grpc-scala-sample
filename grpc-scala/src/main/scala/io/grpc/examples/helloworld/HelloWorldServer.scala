@@ -43,7 +43,7 @@ import scala.concurrent.{ExecutionContext, Future}
 object HelloWorldServer {
   private val logger = Logger.getLogger(classOf[HelloWorldServer].getName)
 
-  def main(args: Array[String]) {
+  def main(args: Array[String]): Unit = {
     val server = new HelloWorldServer(ExecutionContext.global)
     server.start()
     server.blockUntilShutdown()

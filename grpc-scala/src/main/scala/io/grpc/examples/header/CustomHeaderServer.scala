@@ -52,7 +52,7 @@ object CustomHeaderServer {
   /**
    * Main launches the server from the command line.
    */
-  def main(args: Array[String]) {
+  def main(args: Array[String]): Unit = {
     val server = new CustomHeaderServer
     server.start()
     server.blockUntilShutdown()
@@ -62,7 +62,7 @@ object CustomHeaderServer {
 class CustomHeaderServer {
   private var server: Server = null
 
-  private def start() {
+  private def start(): Unit = {
     server = ServerBuilder.forPort(CustomHeaderServer.port).addService(
       ServerInterceptors.intercept(
         GreeterGrpc.bindService(new GreeterImpl, ExecutionContext.global),
@@ -71,7 +71,7 @@ class CustomHeaderServer {
     ).build.start
     CustomHeaderServer.logger.info("Server started, listening on " + CustomHeaderServer.port)
     Runtime.getRuntime.addShutdownHook(new Thread() {
-      override def run() {
+      override def run() = {
         System.err.println("*** shutting down gRPC server since JVM is shutting down")
         CustomHeaderServer.this.stop()
         System.err.println("*** server shut down")
@@ -79,7 +79,7 @@ class CustomHeaderServer {
     })
   }
 
-  private def stop() {
+  private def stop(): Unit = {
     if (server != null) {
       server.shutdown
     }
@@ -88,7 +88,7 @@ class CustomHeaderServer {
   /**
    * Await termination on the main thread since the grpc library uses daemon threads.
    */
-  private def blockUntilShutdown() {
+  private def blockUntilShutdown(): Unit = {
     if (server != null) {
       server.awaitTermination()
     }

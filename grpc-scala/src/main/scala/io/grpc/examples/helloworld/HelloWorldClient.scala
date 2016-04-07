@@ -70,7 +70,7 @@ class HelloWorldClient private(
   }
 
   /** Say hello to server. */
-  def greet(name: String) {
+  def greet(name: String): Unit = {
     logger.info("Will try to greet " + name + " ...")
     val request = HelloRequest(name = name)
     try {

@@ -58,10 +58,10 @@ class HeaderClientInterceptor extends ClientInterceptor {
     next: Channel
   ): ClientCall[ReqT, RespT] = {
     new ForwardingClientCall.SimpleForwardingClientCall[ReqT, RespT](next.newCall(method, callOptions)) {
-      override def start(responseListener: ClientCall.Listener[RespT], headers: Metadata) {
+      override def start(responseListener: ClientCall.Listener[RespT], headers: Metadata) = {
         headers.put(HeaderClientInterceptor.customHeadKey, "customRequestValue")
         super.start(new ForwardingClientCallListener.SimpleForwardingClientCallListener[RespT](responseListener) {
-          override def onHeaders(headers: Metadata) {
+          override def onHeaders(headers: Metadata) = {
             HeaderClientInterceptor.logger.info("header received from server:" + headers)
             super.onHeaders(headers)
           }

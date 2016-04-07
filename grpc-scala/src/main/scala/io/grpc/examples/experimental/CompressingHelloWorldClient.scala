@@ -53,7 +53,7 @@ object CompressingHelloWorldClient {
    * Greet server. If provided, the first element of {{{args}}} is the name to use in the
    * greeting.
    */
-  def main(args: Array[String]) {
+  def main(args: Array[String]): Unit = {
     val client = new CompressingHelloWorldClient("localhost", 50051)
     try {
       val user = args.headOption.getOrElse("world")
@@ -73,7 +73,7 @@ class CompressingHelloWorldClient(host: String, port: Int) {
   }
 
   /** Say hello to server. */
-  def greet(name: String) {
+  def greet(name: String): Unit = {
     val call = channel.newCall(GreeterGrpc.METHOD_SAY_HELLO, CallOptions.DEFAULT)
     val latch = new CountDownLatch(1)
 

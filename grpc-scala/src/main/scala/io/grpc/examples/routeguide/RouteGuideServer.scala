@@ -50,7 +50,7 @@ import scala.concurrent.{ExecutionContext, Future}
 object RouteGuideServer {
   private val logger: Logger = Logger.getLogger(classOf[RouteGuideServer].getName)
 
-  def main(args: Array[String]) {
+  def main(args: Array[String]): Unit = {
     val server = new RouteGuideServer(8980)
     server.start(ExecutionContext.global)
     server.blockUntilShutdown()
@@ -79,7 +79,7 @@ object RouteGuideServer {
 
     override def getFeature(request: Point) = Future.successful(checkFeature(request))
 
-    def listFeatures(request: Rectangle, responseObserver: StreamObserver[Feature]) {
+    override def listFeatures(request: Rectangle, responseObserver: StreamObserver[Feature]): Unit = {
       val lo = request.getLo
       val hi = request.getHi
       val left = min(lo.longitude, hi.longitude)
@@ -99,7 +99,7 @@ object RouteGuideServer {
       responseObserver.onCompleted()
     }
 
-    def recordRoute(responseObserver: StreamObserver[RouteSummary]): StreamObserver[Point] = {
+    override def recordRoute(responseObserver: StreamObserver[RouteSummary]): StreamObserver[Point] = {
       new StreamObserver[Point]() {
         private[this] var pointCount = 0
         private[this] var featureCount = 0
@@ -107,7 +107,7 @@ object RouteGuideServer {
         private[this] var previous: Point = null
         private[this] final val startTime: Long = System.nanoTime
 
-        def onNext(point: Point) {
+        override def onNext(point: Point) = {
           pointCount += 1
           if (RouteGuideUtil.exists(checkFeature(point))) {
             featureCount += 1
@@ -118,11 +118,11 @@ object RouteGuideServer {
           previous = point
         }
 
-        def onError(t: Throwable) {
+        override def onError(t: Throwable) = {
           logger.log(Level.WARNING, "recordRoute cancelled", t)
         }
 
-        def onCompleted(): Unit = {
+        override def onCompleted(): Unit = {
           val seconds = NANOSECONDS.toSeconds(System.nanoTime - startTime)
           responseObserver.onNext(RouteSummary(pointCount = pointCount, featureCount = featureCount, distance = distance, elapsedTime = seconds.toInt))
           responseObserver.onCompleted()
@@ -130,9 +130,9 @@ object RouteGuideServer {
       }
     }
 
-    def routeChat(responseObserver: StreamObserver[RouteNote]): StreamObserver[RouteNote] = {
+    override def routeChat(responseObserver: StreamObserver[RouteNote]): StreamObserver[RouteNote] = {
       new StreamObserver[RouteNote]() {
-        def onNext(note: RouteNote) {
+        override def onNext(note: RouteNote) = {
           val notes = getOrCreateNotes(note.getLocation)
           for (prevNote <- notes.asScala) {
             responseObserver.onNext(prevNote)
@@ -140,11 +140,11 @@ object RouteGuideServer {
           notes.add(note)
         }
 
-        def onError(t: Throwable) {
+        override def onError(t: Throwable) = {
           logger.log(Level.WARNING, "routeChat cancelled", t)
         }
 
-        def onCompleted() =  {
+        override def onCompleted() = {
           responseObserver.onCompleted()
         }
       }

@@ -48,7 +48,7 @@ object CustomHeaderClient {
    * Main start the client from the command line.
    */
   @throws(classOf[Exception])
-  def main(args: Array[String]) {
+  def main(args: Array[String]): Unit = {
     val client = new CustomHeaderClient("localhost", 50051)
     try {
       val user = args.headOption.getOrElse("world")
@@ -71,14 +71,14 @@ class CustomHeaderClient(host: String, port: Int) {
     GreeterGrpc.blockingStub(channel)
   }
 
-  private def shutdown() {
+  private def shutdown(): Unit = {
     originChannel.shutdown.awaitTermination(5, TimeUnit.SECONDS)
   }
 
   /**
    * A simple client method that like [[io.grpc.examples.helloworld.HelloWorldClient]].
    */
-  private def greet(name: String) {
+  private def greet(name: String): Unit = {
     CustomHeaderClient.logger.info("Will try to greet " + name + " ...")
     val request = HelloRequest(name)
     val response = try {

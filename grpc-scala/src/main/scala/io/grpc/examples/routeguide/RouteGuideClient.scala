@@ -45,7 +45,7 @@ import io.grpc.{ManagedChannel, ManagedChannelBuilder, Status, StatusRuntimeExce
 object RouteGuideClient {
   private val logger: Logger = Logger.getLogger(classOf[RouteGuideClient].getName)
 
-  def main(args: Array[String]) {
+  def main(args: Array[String]): Unit = {
     val features = try {
       RouteGuideUtil.parseFeatures(RouteGuideUtil.getDefaultFeaturesFile)
     } catch {
@@ -131,17 +131,17 @@ class RouteGuideClient private (
     info("*** RecordRoute")
     val finishLatch = new CountDownLatch(1)
     val responseObserver = new StreamObserver[RouteSummary] {
-      def onNext(summary: RouteSummary) {
+      override def onNext(summary: RouteSummary) = {
         info("Finished trip with {0} points. Passed {1} features. " + "Travelled {2} meters. It took {3} seconds.", summary.pointCount, summary.featureCount, summary.distance, summary.elapsedTime)
       }
 
-      def onError(t: Throwable) {
+      override def onError(t: Throwable) = {
         val status = Status.fromThrowable(t)
         RouteGuideClient.logger.log(Level.WARNING, "RecordRoute Failed: {0}", status)
         finishLatch.countDown()
       }
 
-      def onCompleted(): Unit = {
+      override def onCompleted(): Unit = {
         info("Finished RecordRoute")
         finishLatch.countDown()
       }
@@ -176,17 +176,17 @@ class RouteGuideClient private (
     info("*** RoutChat")
     val finishLatch = new CountDownLatch(1)
     val requestObserver = asyncStub.routeChat(new StreamObserver[RouteNote]() {
-      def onNext(note: RouteNote) {
+      override def onNext(note: RouteNote) = {
         info("Got message \"{0}\" at {1}, {2}", note.message, note.getLocation.latitude, note.getLocation.longitude)
       }
 
-      def onError(t: Throwable) {
+      override def onError(t: Throwable) = {
         val status = Status.fromThrowable(t)
         RouteGuideClient.logger.log(Level.WARNING, "RouteChat Failed: {0}", status)
         finishLatch.countDown()
       }
 
-      def onCompleted() = {
+      override def onCompleted() = {
         info("Finished RouteChat")
         finishLatch.countDown()
       }

@@ -58,7 +58,7 @@ class HeaderServerInterceptor extends ServerInterceptor {
   ): ServerCall.Listener[ReqT] = {
     HeaderServerInterceptor.logger.info("header received from client:" + requestHeaders)
     next.startCall(method, new ForwardingServerCall.SimpleForwardingServerCall[RespT](call) {
-      override def sendHeaders(responseHeaders: Metadata) {
+      override def sendHeaders(responseHeaders: Metadata) = {
         responseHeaders.put(HeaderServerInterceptor.customHeadKey, "customRespondValue")
         super.sendHeaders(responseHeaders)
       }
