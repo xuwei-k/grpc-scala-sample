@@ -58,13 +58,11 @@ class HelloWorldServer(executionContext: ExecutionContext) { self =>
   private def start(): Unit = {
     server = ServerBuilder.forPort(HelloWorldServer.port).addService(GreeterGrpc.bindService(new GreeterImpl, executionContext)).build.start
     HelloWorldServer.logger.info("Server started, listening on " + HelloWorldServer.port)
-    Runtime.getRuntime.addShutdownHook(new Thread() {
-      override def run(): Unit = {
-        System.err.println("*** shutting down gRPC server since JVM is shutting down")
-        self.stop()
-        System.err.println("*** server shut down")
-      }
-    })
+    sys.addShutdownHook {
+      System.err.println("*** shutting down gRPC server since JVM is shutting down")
+      self.stop()
+      System.err.println("*** server shut down")
+    }
   }
 
   private def stop(): Unit = {
