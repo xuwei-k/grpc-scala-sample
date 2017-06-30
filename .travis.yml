@@ -1,4 +1,19 @@
 language: scala
 sudo: false
+jdk: oraclejdk8
+scala:
+- 2.12.2
+- 2.11.11
+addons:
+  apt:
+    packages:
+    - oracle-java8-installer
+cache:
+  directories:
+  - "$HOME/.ivy2/cache"
+  - "$HOME/.sbt/launchers"
 script:
-  sbt test
+- sbt ++${TRAVIS_SCALA_VERSION} test:compile
+before_cache:
+- find $HOME/.sbt -name "*.lock" | xargs rm
+- find $HOME/.ivy2 -name "ivydata-*.properties" | xargs rm

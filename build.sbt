@@ -1,7 +1,4 @@
-import com.trueaccord.scalapb.{ScalaPbPlugin => PB}
-
-// https://github.com/grpc/grpc-java/blob/v0.13.2/examples/build.gradle#L32
-val json = libraryDependencies += "org.glassfish" % "javax.json" % "1.0.4"
+import com.trueaccord.scalapb.compiler.Version.{grpcJavaVersion, scalapbVersion, protobufVersion}
 
 val unusedWarnings = (
   "-Ywarn-unused" ::
@@ -14,21 +11,17 @@ lazy val root = project.in(file(".")).aggregate(
 )
 
 val commonSettings: Seq[Def.Setting[_]] = Seq[Def.Setting[_]](
-  discoveredMainClasses in Compile ~= {_.sorted}
+  scalaVersion := "2.12.2",
+  libraryDependencies += "io.grpc" % "grpc-netty" % grpcJavaVersion,
+  libraryDependencies += "com.trueaccord.scalapb" %% "scalapb-runtime" % scalapbVersion % "protobuf"
 )
 
 lazy val grpcScalaSample = project.in(file("grpc-scala")).settings(
   commonSettings,
-  PB.protobufSettings,
-  PB.runProtoc in PB.protobufConfig := { args =>
-    com.github.os72.protocjar.Protoc.runProtoc("-v300" +: args.toArray)
-  },
-  version in PB.protobufConfig := "3.0.0-beta-2",
-  libraryDependencies += "com.trueaccord.scalapb" %% "scalapb-runtime-grpc" % (PB.scalapbVersion in PB.protobufConfig).value,
-  json,
+  libraryDependencies += "com.trueaccord.scalapb" %% "scalapb-runtime-grpc" % scalapbVersion,
+  PB.targets in Compile := Seq(scalapb.gen() -> (sourceManaged in Compile).value),
   unmanagedResourceDirectories in Compile += (baseDirectory in LocalRootProject).value / "grpc-java/examples/src/main/resources",
-  sourceDirectory in PB.protobufConfig := (baseDirectory in LocalRootProject).value / "grpc-java/examples/src/main/proto",
-  scalaVersion := "2.11.8",
+  PB.protoSources in Compile += (baseDirectory in LocalRootProject).value / "grpc-java/examples/src/main/proto",
   scalacOptions ++= (
     "-deprecation" ::
     "-unchecked" ::
@@ -40,14 +33,49 @@ lazy val grpcScalaSample = project.in(file("grpc-scala")).settings(
     Nil
   ) ::: unusedWarnings,
   Seq(Compile, Test).flatMap(c =>
-    scalacOptions in (c, console) ~= {_.filterNot(unusedWarnings.toSet)}
+    scalacOptions in (c, console) --= unusedWarnings
   )
 )
 
+val grpcArtifactId = "protoc-gen-grpc-java"
+
+lazy val grpcExeFileName = {
+  val os = if (scala.util.Properties.isMac){
+    "osx-x86_64"
+  } else if (scala.util.Properties.isWin){
+    "windows-x86_64"
+  } else {
+    "linux-x86_64"
+  }
+  s"${grpcArtifactId}-${grpcJavaVersion}-${os}.exe"
+}
+
+lazy val grpcExeUrl =
+  url(s"https://repo1.maven.org/maven2/io/grpc/${grpcArtifactId}/${grpcJavaVersion}/${grpcExeFileName}")
+
+val grpcExePath = SettingKey[xsbti.api.Lazy[File]]("grpcExePath")
+
 lazy val grpcJavaSample = project.in(file("grpc-java/examples")).settings(
   commonSettings,
-  json,
-  libraryDependencies += "io.grpc" % "grpc-all" % "0.13.2",
-  autoScalaLibrary := false,
-  unmanagedSourceDirectories in Compile += baseDirectory.value / "src/generated/main/"
+  PB.targets in Compile := Seq(PB.gens.java(protobufVersion) -> (sourceManaged in Compile).value),
+  PB.protocOptions in Compile ++= Seq(
+    s"--plugin=protoc-gen-java_rpc=${grpcExePath.value.get}",
+    s"--java_rpc_out=${((sourceManaged in Compile).value).getAbsolutePath}"
+  ),
+  grpcExePath := xsbti.SafeLazy {
+    val exe = (baseDirectory in LocalRootProject).value / ".bin" / grpcExeFileName
+    if (!exe.isFile) {
+      println("grpc protoc plugin (for Java) does not exist. Downloading.")
+      IO.download(grpcExeUrl, exe)
+      exe.setExecutable(true)
+    }
+    exe
+  },
+  PB.protoSources in Compile += baseDirectory.value / "src/main/proto",
+  // https://github.com/grpc/grpc-java/blob/v1.4.0/examples/build.gradle#L28-L33
+  libraryDependencies += "io.grpc" % "grpc-protobuf" % grpcJavaVersion,
+  libraryDependencies += "io.grpc" % "grpc-stub" % grpcJavaVersion,
+  libraryDependencies += "org.mockito" % "mockito-core" % "1.9.5" % "test",
+  libraryDependencies += "com.novocode" % "junit-interface" % "0.11" % "test",
+  autoScalaLibrary := false
 )

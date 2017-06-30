@@ -1,3 +1,3 @@
-addSbtPlugin("com.trueaccord.scalapb" % "sbt-scalapb" % "0.5.26")
+addSbtPlugin("com.thesamet" % "sbt-protoc" % "0.99.9")
 
-libraryDependencies += "com.github.os72" % "protoc-jar" % "3.0.0-b2"
+libraryDependencies += "com.trueaccord.scalapb" %% "compilerplugin" % "0.6.0"
