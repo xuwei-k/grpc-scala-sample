@@ -13,7 +13,7 @@ cache:
   - "$HOME/.ivy2/cache"
   - "$HOME/.sbt/launchers"
 script:
-- sbt ++${TRAVIS_SCALA_VERSION} test:compile
+- sbt ++${TRAVIS_SCALA_VERSION} test
 before_cache:
 - find $HOME/.sbt -name "*.lock" | xargs rm
 - find $HOME/.ivy2 -name "ivydata-*.properties" | xargs rm
