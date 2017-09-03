@@ -38,7 +38,7 @@ import io.grpc.examples.helloworld.helloworld.{GreeterGrpc, HelloRequest, HelloR
 import scala.concurrent.{ExecutionContext, Future}
 
 /**
- * [[https://github.com/grpc/grpc-java/blob/v0.13.2/examples/src/main/java/io/grpc/examples/helloworld/HelloWorldServer.java]]
+ * [[https://github.com/grpc/grpc-java/blob/v0.15.0/examples/src/main/java/io/grpc/examples/helloworld/HelloWorldServer.java]]
  */
 object HelloWorldServer {
   private val logger = Logger.getLogger(classOf[HelloWorldServer].getName)

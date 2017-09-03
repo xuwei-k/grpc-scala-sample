@@ -39,7 +39,7 @@ import io.grpc.examples.helloworld.helloworld.GreeterGrpc.GreeterBlockingStub
 import io.grpc.{StatusRuntimeException, ManagedChannelBuilder, ManagedChannel}
 
 /**
- * [[https://github.com/grpc/grpc-java/blob/v0.13.2/examples/src/main/java/io/grpc/examples/helloworld/HelloWorldClient.java]]
+ * [[https://github.com/grpc/grpc-java/blob/v0.15.0/examples/src/main/java/io/grpc/examples/helloworld/HelloWorldClient.java]]
  */
 object HelloWorldClient {
   def apply(host: String, port: Int): HelloWorldClient = {
