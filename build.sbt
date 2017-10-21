@@ -12,7 +12,7 @@ lazy val root = project.in(file(".")).aggregate(
 
 val commonSettings: Seq[Def.Setting[_]] = Seq[Def.Setting[_]](
   fork in Test := true,
-  scalaVersion := "2.12.3",
+  scalaVersion := "2.12.4",
   libraryDependencies += "io.grpc" % "grpc-netty" % grpcJavaVersion,
   libraryDependencies += "com.trueaccord.scalapb" %% "scalapb-runtime" % scalapbVersion % "protobuf"
 )
@@ -63,11 +63,13 @@ lazy val grpcJavaSample = project.in(file("grpc-java/examples")).settings(
     s"--plugin=protoc-gen-java_rpc=${grpcExePath.value.get}",
     s"--java_rpc_out=${((sourceManaged in Compile).value).getAbsolutePath}"
   ),
-  grpcExePath := xsbti.SafeLazy {
+  grpcExePath := xsbti.api.SafeLazyProxy {
     val exe = (baseDirectory in LocalRootProject).value / ".bin" / grpcExeFileName
     if (!exe.isFile) {
       println("grpc protoc plugin (for Java) does not exist. Downloading.")
-      IO.download(grpcExeUrl, exe)
+      sbt.io.Using.urlInputStream(grpcExeUrl) { inputStream =>
+        IO.transfer(inputStream, exe)
+      }
       exe.setExecutable(true)
     }
     exe
