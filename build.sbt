@@ -1,4 +1,4 @@
-import com.trueaccord.scalapb.compiler.Version.{grpcJavaVersion, scalapbVersion, protobufVersion}
+import scalapb.compiler.Version.{grpcJavaVersion, scalapbVersion, protobufVersion}
 
 val unusedWarnings = (
   "-Ywarn-unused" ::
@@ -14,12 +14,12 @@ val commonSettings: Seq[Def.Setting[_]] = Seq[Def.Setting[_]](
   fork in Test := true,
   scalaVersion := "2.12.4",
   libraryDependencies += "io.grpc" % "grpc-netty" % grpcJavaVersion,
-  libraryDependencies += "com.trueaccord.scalapb" %% "scalapb-runtime" % scalapbVersion % "protobuf"
+  libraryDependencies += "com.thesamet.scalapb" %% "scalapb-runtime" % scalapbVersion % "protobuf"
 )
 
 lazy val grpcScalaSample = project.in(file("grpc-scala")).settings(
   commonSettings,
-  libraryDependencies += "com.trueaccord.scalapb" %% "scalapb-runtime-grpc" % scalapbVersion,
+  libraryDependencies += "com.thesamet.scalapb" %% "scalapb-runtime-grpc" % scalapbVersion,
   PB.targets in Compile := Seq(scalapb.gen() -> (sourceManaged in Compile).value),
   unmanagedResourceDirectories in Compile += (baseDirectory in LocalRootProject).value / "grpc-java/examples/src/main/resources",
   PB.protoSources in Compile += (baseDirectory in LocalRootProject).value / "grpc-java/examples/src/main/proto",
