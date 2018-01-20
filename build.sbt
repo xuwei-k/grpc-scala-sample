@@ -13,6 +13,7 @@ lazy val root = project.in(file(".")).aggregate(
 val commonSettings: Seq[Def.Setting[_]] = Seq[Def.Setting[_]](
   fork in Test := true,
   scalaVersion := "2.12.4",
+  PB.protocVersion := "-v350",
   libraryDependencies += "io.grpc" % "grpc-netty" % grpcJavaVersion,
   libraryDependencies += "com.thesamet.scalapb" %% "scalapb-runtime" % scalapbVersion % "protobuf"
 )
@@ -75,7 +76,7 @@ lazy val grpcJavaSample = project.in(file("grpc-java/examples")).settings(
     exe
   },
   PB.protoSources in Compile += baseDirectory.value / "src/main/proto",
-  // https://github.com/grpc/grpc-java/blob/v1.5.0/examples/build.gradle#L28-L35
+  // https://github.com/grpc/grpc-java/blob/v1.9.0/examples/build.gradle#L28-L35
   libraryDependencies += "io.grpc" % "grpc-protobuf" % grpcJavaVersion,
   libraryDependencies += "io.grpc" % "grpc-stub" % grpcJavaVersion,
   libraryDependencies += "io.grpc" % "grpc-testing" % grpcJavaVersion % "test",
