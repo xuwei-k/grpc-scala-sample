@@ -2,7 +2,7 @@ language: scala
 sudo: false
 jdk: oraclejdk8
 scala:
-- 2.12.4
+- 2.12.5
 - 2.11.12
 addons:
   apt:
