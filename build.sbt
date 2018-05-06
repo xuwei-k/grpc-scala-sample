@@ -76,10 +76,12 @@ lazy val grpcJavaSample = project.in(file("grpc-java/examples")).settings(
     exe
   },
   PB.protoSources in Compile += baseDirectory.value / "src/main/proto",
-  // https://github.com/grpc/grpc-java/blob/v1.9.0/examples/build.gradle#L28-L35
+  // https://github.com/grpc/grpc-java/blob/v1.11.0/examples/build.gradle#L35-L46
+  libraryDependencies += "io.grpc" % "grpc-alts" % grpcJavaVersion,
   libraryDependencies += "io.grpc" % "grpc-protobuf" % grpcJavaVersion,
   libraryDependencies += "io.grpc" % "grpc-stub" % grpcJavaVersion,
   libraryDependencies += "io.grpc" % "grpc-testing" % grpcJavaVersion % "test",
+  libraryDependencies += "io.netty" % "netty-tcnative-boringssl-static" % "2.0.7.Final",
   libraryDependencies += "org.mockito" % "mockito-core" % "1.9.5" % "test",
   libraryDependencies += "com.novocode" % "junit-interface" % "0.11" % "test",
   autoScalaLibrary := false
