@@ -2,7 +2,6 @@ import scalapb.compiler.Version.{grpcJavaVersion, scalapbVersion, protobufVersio
 
 val unusedWarnings = (
   "-Ywarn-unused" ::
-  "-Ywarn-unused-import" ::
   Nil
 )
 
