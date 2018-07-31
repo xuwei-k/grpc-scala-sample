@@ -75,7 +75,7 @@ lazy val grpcJavaSample = project.in(file("grpc-java/examples")).settings(
     exe
   },
   PB.protoSources in Compile += baseDirectory.value / "src/main/proto",
-  // https://github.com/grpc/grpc-java/blob/v1.11.0/examples/build.gradle#L35-L46
+  // https://github.com/grpc/grpc-java/blob/v1.13.2/examples/build.gradle#L37-L51
   libraryDependencies += "io.grpc" % "grpc-alts" % grpcJavaVersion,
   libraryDependencies += "io.grpc" % "grpc-protobuf" % grpcJavaVersion,
   libraryDependencies += "io.grpc" % "grpc-stub" % grpcJavaVersion,
