@@ -11,7 +11,7 @@ lazy val root = project.in(file(".")).aggregate(
 
 val commonSettings: Seq[Def.Setting[_]] = Seq[Def.Setting[_]](
   fork in Test := true,
-  scalaVersion := "2.12.7",
+  scalaVersion := "2.12.8",
   PB.protocVersion := "-v351",
   libraryDependencies += "io.grpc" % "grpc-netty" % grpcJavaVersion,
   libraryDependencies += "com.thesamet.scalapb" %% "scalapb-runtime" % scalapbVersion % "protobuf"
