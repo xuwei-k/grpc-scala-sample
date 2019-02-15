@@ -43,7 +43,7 @@ import io.grpc.{StatusRuntimeException, ManagedChannelBuilder, ManagedChannel}
  */
 object HelloWorldClient {
   def apply(host: String, port: Int): HelloWorldClient = {
-    val channel = ManagedChannelBuilder.forAddress(host, port).usePlaintext(true).build
+    val channel = ManagedChannelBuilder.forAddress(host, port).usePlaintext().build
     val blockingStub = GreeterGrpc.blockingStub(channel)
     new HelloWorldClient(channel, blockingStub)
   }

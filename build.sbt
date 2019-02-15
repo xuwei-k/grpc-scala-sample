@@ -12,7 +12,6 @@ lazy val root = project.in(file(".")).aggregate(
 val commonSettings: Seq[Def.Setting[_]] = Seq[Def.Setting[_]](
   fork in Test := true,
   scalaVersion := "2.12.8",
-  PB.protocVersion := "-v351",
   libraryDependencies += "io.grpc" % "grpc-netty" % grpcJavaVersion,
   libraryDependencies += "com.thesamet.scalapb" %% "scalapb-runtime" % scalapbVersion % "protobuf"
 )
@@ -75,12 +74,12 @@ lazy val grpcJavaSample = project.in(file("grpc-java/examples")).settings(
     exe
   },
   PB.protoSources in Compile += baseDirectory.value / "src/main/proto",
-  // https://github.com/grpc/grpc-java/blob/v1.13.2/examples/build.gradle#L37-L51
+  // https://github.com/grpc/grpc-java/blob/v1.18.0/examples/build.gradle#L30-L41
   libraryDependencies += "io.grpc" % "grpc-alts" % grpcJavaVersion,
   libraryDependencies += "io.grpc" % "grpc-protobuf" % grpcJavaVersion,
   libraryDependencies += "io.grpc" % "grpc-stub" % grpcJavaVersion,
   libraryDependencies += "io.grpc" % "grpc-testing" % grpcJavaVersion % "test",
-  libraryDependencies += "io.netty" % "netty-tcnative-boringssl-static" % "2.0.7.Final",
+  libraryDependencies += "io.netty" % "netty-tcnative-boringssl-static" % "2.0.20.Final",
   libraryDependencies += "org.mockito" % "mockito-core" % "1.9.5" % "test",
   libraryDependencies += "com.novocode" % "junit-interface" % "0.11" % "test",
   autoScalaLibrary := false
