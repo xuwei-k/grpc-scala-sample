@@ -43,7 +43,7 @@ import io.grpc.{StatusRuntimeException, ManagedChannelBuilder, ManagedChannel}
  */
 object HelloWorldClient {
   def apply(host: String, port: Int): HelloWorldClient = {
-    val channel = ManagedChannelBuilder.forAddress(host, port).usePlaintext().build
+    val channel = ManagedChannelBuilder.forAddress(host, port).maxInboundMessageSize(1000 * 1000 * 1000).usePlaintext().build
     val blockingStub = GreeterGrpc.blockingStub(channel)
     new HelloWorldClient(channel, blockingStub)
   }
@@ -51,7 +51,7 @@ object HelloWorldClient {
   def main(args: Array[String]): Unit = {
     val client = HelloWorldClient("localhost", 50051)
     try {
-      val user = args.headOption.getOrElse("world")
+      val user = args.headOption.getOrElse("x" * (900 * 1000 * 1000))
       client.greet(user)
     } finally {
       client.shutdown()
@@ -71,11 +71,10 @@ class HelloWorldClient private(
 
   /** Say hello to server. */
   def greet(name: String): Unit = {
-    logger.info("Will try to greet " + name + " ...")
     val request = HelloRequest(name = name)
     try {
       val response = blockingStub.sayHello(request)
-      logger.info("Greeting: " + response.message)
+      logger.info("Greeting: " + response.message.length)
     }
     catch {
       case e: StatusRuntimeException =>
