@@ -9,9 +9,12 @@ lazy val root = project.in(file(".")).aggregate(
   grpcJavaSample, grpcScalaSample
 )
 
+def Scala212 = "2.12.12"
+
 val commonSettings: Seq[Def.Setting[_]] = Seq[Def.Setting[_]](
   fork in Test := true,
-  scalaVersion := "2.12.8",
+  scalaVersion := Scala212,
+  crossScalaVersions := List(Scala212), // TODO add Scala 2.13
   libraryDependencies += "io.grpc" % "grpc-netty" % grpcJavaVersion,
   libraryDependencies += "com.thesamet.scalapb" %% "scalapb-runtime" % scalapbVersion % "protobuf"
 )
