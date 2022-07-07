@@ -9,7 +9,7 @@ lazy val root = project.in(file(".")).aggregate(
   grpcJavaSample, grpcScalaSample
 )
 
-def Scala212 = "2.12.12"
+def Scala212 = "2.12.16"
 
 val commonSettings: Seq[Def.Setting[_]] = Seq[Def.Setting[_]](
   fork in Test := true,
