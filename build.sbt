@@ -12,7 +12,7 @@ lazy val root = project.in(file(".")).aggregate(
 def Scala212 = "2.12.16"
 
 val commonSettings: Seq[Def.Setting[_]] = Seq[Def.Setting[_]](
-  fork in Test := true,
+  Test / fork := true,
   scalaVersion := Scala212,
   crossScalaVersions := List(Scala212), // TODO add Scala 2.13
   libraryDependencies += "io.grpc" % "grpc-netty" % grpcJavaVersion,
@@ -22,9 +22,9 @@ val commonSettings: Seq[Def.Setting[_]] = Seq[Def.Setting[_]](
 lazy val grpcScalaSample = project.in(file("grpc-scala")).settings(
   commonSettings,
   libraryDependencies += "com.thesamet.scalapb" %% "scalapb-runtime-grpc" % scalapbVersion,
-  PB.targets in Compile := Seq(scalapb.gen() -> (sourceManaged in Compile).value),
-  unmanagedResourceDirectories in Compile += (baseDirectory in LocalRootProject).value / "grpc-java/examples/src/main/resources",
-  PB.protoSources in Compile += (baseDirectory in LocalRootProject).value / "grpc-java/examples/src/main/proto",
+  Compile / PB.targets := Seq(scalapb.gen() -> (Compile / sourceManaged).value),
+  Compile / unmanagedResourceDirectories += (LocalRootProject / baseDirectory).value / "grpc-java/examples/src/main/resources",
+  Compile / PB.protoSources += (LocalRootProject / baseDirectory).value / "grpc-java/examples/src/main/proto",
   scalacOptions ++= (
     "-deprecation" ::
     "-unchecked" ::
@@ -36,7 +36,7 @@ lazy val grpcScalaSample = project.in(file("grpc-scala")).settings(
     Nil
   ) ::: unusedWarnings,
   Seq(Compile, Test).flatMap(c =>
-    scalacOptions in (c, console) --= unusedWarnings
+    c / console / scalacOptions --= unusedWarnings
   )
 )
 
@@ -60,13 +60,13 @@ val grpcExePath = SettingKey[xsbti.api.Lazy[File]]("grpcExePath")
 
 lazy val grpcJavaSample = project.in(file("grpc-java/examples")).settings(
   commonSettings,
-  PB.targets in Compile := Seq(PB.gens.java(protobufVersion) -> (sourceManaged in Compile).value),
-  PB.protocOptions in Compile ++= Seq(
+  Compile / PB.targets := Seq(PB.gens.java(protobufVersion) -> (Compile / sourceManaged).value),
+  Compile / PB.protocOptions ++= Seq(
     s"--plugin=protoc-gen-java_rpc=${grpcExePath.value.get}",
-    s"--java_rpc_out=${((sourceManaged in Compile).value).getAbsolutePath}"
+    s"--java_rpc_out=${((Compile / sourceManaged).value).getAbsolutePath}"
   ),
   grpcExePath := xsbti.api.SafeLazyProxy {
-    val exe = (baseDirectory in LocalRootProject).value / ".bin" / grpcExeFileName
+    val exe = (LocalRootProject / baseDirectory).value / ".bin" / grpcExeFileName
     if (!exe.isFile) {
       println("grpc protoc plugin (for Java) does not exist. Downloading.")
       sbt.io.Using.urlInputStream(grpcExeUrl) { inputStream =>
@@ -76,7 +76,7 @@ lazy val grpcJavaSample = project.in(file("grpc-java/examples")).settings(
     }
     exe
   },
-  PB.protoSources in Compile += baseDirectory.value / "src/main/proto",
+  Compile / PB.protoSources += baseDirectory.value / "src/main/proto",
   // https://github.com/grpc/grpc-java/blob/v1.18.0/examples/build.gradle#L30-L41
   libraryDependencies += "io.grpc" % "grpc-alts" % grpcJavaVersion,
   libraryDependencies += "io.grpc" % "grpc-protobuf" % grpcJavaVersion,
