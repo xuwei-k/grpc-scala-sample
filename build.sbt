@@ -1,4 +1,4 @@
-import scalapb.compiler.Version.{grpcJavaVersion, scalapbVersion, protobufVersion}
+import scalapb.compiler.Version.{scalapbVersion, protobufVersion}
 
 val unusedWarnings = (
   "-Ywarn-unused" ::
@@ -9,12 +9,12 @@ lazy val root = project.in(file(".")).aggregate(
   grpcJavaSample, grpcScalaSample
 )
 
-def Scala212 = "2.12.16"
+def Scala3 = "3.7.0"
 
 val commonSettings: Seq[Def.Setting[_]] = Seq[Def.Setting[_]](
   Test / fork := true,
-  scalaVersion := Scala212,
-  crossScalaVersions := List(Scala212), // TODO add Scala 2.13
+  scalaVersion := Scala3,
+  crossScalaVersions := List(Scala3),
   libraryDependencies += "io.grpc" % "grpc-netty" % grpcJavaVersion,
   libraryDependencies += "com.thesamet.scalapb" %% "scalapb-runtime" % scalapbVersion % "protobuf"
 )
@@ -22,7 +22,7 @@ val commonSettings: Seq[Def.Setting[_]] = Seq[Def.Setting[_]](
 lazy val grpcScalaSample = project.in(file("grpc-scala")).settings(
   commonSettings,
   libraryDependencies += "com.thesamet.scalapb" %% "scalapb-runtime-grpc" % scalapbVersion,
-  Compile / PB.targets := Seq(scalapb.gen() -> (Compile / sourceManaged).value),
+  Compile / PB.targets := Seq(scalapb.gen(scala3Sources = true) -> (Compile / sourceManaged).value),
   Compile / unmanagedResourceDirectories += (LocalRootProject / baseDirectory).value / "grpc-java/examples/src/main/resources",
   Compile / PB.protoSources += (LocalRootProject / baseDirectory).value / "grpc-java/examples/src/main/proto",
   scalacOptions ++= (
@@ -58,12 +58,15 @@ lazy val grpcExeUrl =
 
 val grpcExePath = SettingKey[xsbti.api.Lazy[File]]("grpcExePath")
 
+val grpcJavaVersion = "1.72.0"
+
 lazy val grpcJavaSample = project.in(file("grpc-java/examples")).settings(
   commonSettings,
   Compile / PB.targets := Seq(PB.gens.java(protobufVersion) -> (Compile / sourceManaged).value),
   Compile / PB.protocOptions ++= Seq(
     s"--plugin=protoc-gen-java_rpc=${grpcExePath.value.get}",
-    s"--java_rpc_out=${((Compile / sourceManaged).value).getAbsolutePath}"
+    s"--java_rpc_out=${((Compile / sourceManaged).value).getAbsolutePath}",
+    s"--java_rpc_opt=@generated=omit"
   ),
   grpcExePath := xsbti.api.SafeLazyProxy {
     val exe = (LocalRootProject / baseDirectory).value / ".bin" / grpcExeFileName
