@@ -15,6 +15,7 @@ jobs:
     - uses: actions/checkout@v4
       with:
         submodules: true
+    - uses: sbt/setup-sbt@69a46ab4acd4316aa16e68d91a9249a98d7e78d5 # v1.1.8
     - uses: actions/setup-java@v4
       with:
         java-version: 8
